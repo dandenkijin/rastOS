@@ -1,42 +1,299 @@
-# astOS (Arch Snapshot Tree OS)
-### An immutable Arch based distribution utilizing btrfs snapshots  
+# rastOS (Rust Arch Snapshot Tree OS)
+### The next evolution of astOS, reimagined in Rust with enhanced security and performance
 
-![astos-logo](logo.jpg)
-
----
-
-## Table of contents
-* [What is astOS?](https://github.com/lambdanil/astOS#what-is-astos)
-* [astOS compared to other similar distributions](https://github.com/lambdanil/astOS#astos-compared-to-other-similar-distributions)
-* [ast and astOS documentation](https://github.com/lambdanil/astOS#additional-documentation)
-  * [Installation](https://github.com/lambdanil/astOS#installation)
-  * [Post installation](https://github.com/lambdanil/astOS#post-installation-setup)
-  * [Snapshot management and deployments](https://github.com/lambdanil/astOS#snapshot-management)
-  * [Package management](https://github.com/lambdanil/astOS#package-management)
-* [Additional documentation](https://github.com/lambdanil/astOS#additional-documentation)
-  * [Updating the pacman keys](https://github.com/lambdanil/astOS#fixing-pacman-corrupt-packages--key-issues)
-  * [Saving configuration changes in /etc persistently](https://github.com/lambdanil/astOS#saving-configuration-changes-made-in-etc)
-  * [Configuring dual boot](https://github.com/lambdanil/astOS#dual-boot)
-  * [Updating ast itself](https://github.com/lambdanil/astOS#updating-ast-itself)
-  * [Debugging ast](https://github.com/lambdanil/astOS#debugging-ast)
-  * [Setting up the AUR](https://github.com/lambdanil/astOS#aur-setup)
-* [Known bugs](https://github.com/lambdanil/astOS#known-bugs)
-* [Contributing](https://github.com/lambdanil/astOS#contributing)
-* [Community](https://github.com/lambdanil/astOS#community)
+![rastos-logo](logo.jpg)
 
 ---
 
-## astOS development is currently inactive, see https://github.com/lambdanil/astOS/issues/33#issuecomment-1874339159
+## Table of Contents
+* [What is rastOS?](#what-is-rastos)
+* [astOS vs rastOS](#astos-vs-rastos)
+* [Key Features](#key-features)
+* [Advanced Features](#advanced-features)
+  * [Bare Metal Implementation](#bare-metal-implementation)
+  * [Cloud Storage Backups](#cloud-storage-backups)
+  * [LLM-Based Scheduling](#llm-based-scheduling)
+* [astOS Documentation](#astos-documentation)
+  * [Installation](#installation)
+  * [Post Installation](#post-installation-setup)
+  * [Snapshot Management](#snapshot-management)
+  * [Package Management](#package-management)
+* [Additional Documentation](#additional-documentation)
+  * [Updating pacman keys](#fixing-pacman-corrupt-packages--key-issues)
+  * [Persistent Configuration](#saving-configuration-changes-made-in-etc)
+  * [Dual Boot Setup](#dual-boot)
+  * [Updating ast/rast](#updating-ast-itself)
+  * [Debugging](#debugging-ast)
+  * [AUR Setup](#aur-setup)
+* [Architecture](#architecture)
+* [Development Status](#development-status)
+* [Contributing](#contributing)
+* [Community](#community)
+* [Known Issues](#known-bugs)
 
-## What is astOS?  
+---
 
-astOS is a modern distribution based on [Arch Linux](https://archlinux.org).  
-Unlike Arch it uses an immutable (read-only) root filesystem.  
-Software is installed and configured into individual snapshot trees, which can then be deployed and booted into.  
-It doesn't use it's own package format or package manager, instead relying on [pacman](https://wiki.archlinux.org/title/pacman) from Arch.
+## What is rastOS?
 
+rastOS is the next evolution of astOS, completely reimagined and rewritten in Rust. It maintains all the core principles of astOS while introducing modern container-first architecture, enhanced security features, and improved performance through Rust's memory safety guarantees.
 
-**This has several advantages:**
+## astOS vs rastOS
+
+### What stays the same:
+- Immutable root filesystem
+- BTRFS snapshot-based system management
+- Arch Linux compatibility
+- Package management through pacman
+- Snapshot deployment workflow
+- Support for AUR packages
+
+### What's new in rastOS:
+- **Rust-Powered Core**: Entirely written in Rust for memory safety and performance
+- **Container-First Architecture**: Built from the ground up for containerized workloads
+- **Enhanced Security**: Modern security practices and minimal attack surface
+- **Vector Database**: Advanced configuration management with semantic search
+- **Dual Runtime Support**: Native and virtualized (RustVMM) execution modes
+- **Modern Init System**: Custom rinit implementation for better process management
+
+## Key Features
+
+- **Immutable Infrastructure**: System state managed through declarative configurations
+- **Minimal Host OS**: Bare minimum components in the host system for improved security
+- **Optimized Kernel**: Custom Linux kernel with container-specific optimizations
+- **Vector Database Integration**: Advanced configuration management with semantic search capabilities
+- **Secure by Default**: Built with security best practices and minimal attack surface
+- **Backward Compatibility**: Maintains compatibility with existing astOS workflows
+
+## astOS Documentation
+
+### Installation
+
+astOS is installed from the official Arch Linux live iso available on [https://archlinux.org/](https://archlinux.org/). The installation process remains the same as before, with the rastOS improvements being implemented under the hood.
+
+```bash
+# On an Arch Linux live environment
+pacman -Sy git
+git clone "https://github.com/dandenkijin/rastOS"  
+cd rastOS
+
+# Partition and format drive (example for EFI)
+lsblk  # Find your drive name
+cfdisk /dev/***  # Create partitions
+mkfs.btrfs /dev/***  # Create btrfs filesystem
+
+# Run installer
+python3 main.py /dev/<partition> /dev/<drive> /dev/<efi_part>
+```
+
+### Post Installation Setup
+
+Post-installation setup follows the same workflow as astOS, with additional configuration options for the new rastOS features.
+
+### Snapshot Management
+
+rastOS maintains the same snapshot management interface as astOS, with enhanced reliability and performance:
+
+```bash
+# Show filesystem tree
+rast tree
+
+# Create new snapshot
+rast clone <base_snapshot>
+
+# Deploy snapshot
+rast deploy <snapshot>
+```
+
+### Package Management
+
+#### astOS (Legacy)
+```bash
+# Install packages
+pacman -S package_name
+
+# Update system
+pacman -Syu
+
+# Search for packages
+pacman -Ss search_term
+```
+
+#### rastOS (Modern Package Management)
+rastOS offers both traditional pacman compatibility and next-generation natural language package management:
+
+```bash
+# Traditional pacman-compatible commands (fully supported)
+rast -S package_name           # Install package
+rast -Syu                      # Full system update
+rast -Ss search_term           # Search for packages
+
+# New natural language interface
+rast "install the latest version of firefox"
+rast "update all packages with security fixes"
+rast "what python packages do I have installed?"
+
+# Advanced package management
+rast pkg install --check-conflicts package_name
+rast pkg update --test         # Simulate update
+rast pkg clean --unused-deps   # Remove unused dependencies
+
+# Key advantages:
+# 100% pacman command-line compatibility
+# Natural language understanding for intuitive operations
+# Vector database-powered semantic search
+# Transactional updates with automatic rollback
+# Enhanced dependency resolution and conflict detection
+
+## Additional Documentation
+
+### Fixing Package and Key Issues
+
+#### astOS (Legacy)
+```bash
+pacman-key --init
+pacman-key --populate archlinux
+pacman -S archlinux-keyring
+pacman -Syu
+```
+
+#### rastOS (New)
+```bash
+# Traditional way (fully supported)
+pacman -S archlinux-keyring
+pacman -Syu
+
+# New way
+rast "fix broken packages and update system"
+# or
+rast pkg fix-keys
+rast pkg update
+```
+
+### Saving configuration changes made in /etc
+
+```bash
+rast chroot <snapshot>
+# Make your changes in /etc
+exit 0
+rast deploy <snapshot>
+```
+
+### Dual Boot
+
+rastOS maintains compatibility with dual-boot setups. Follow the same procedure as with astOS, ensuring you have the `os-prober` package installed.
+
+### Updating ast/rast
+
+```bash
+# Update the rastOS core
+rast self-update
+
+# Update the base system
+rast base-update
+```
+
+### Debugging ast
+
+```bash
+# Enable debug logging
+RAST_DEBUG=1 rast <command>
+
+# Show detailed system information
+rast status
+```
+
+### AUR Setup
+
+```bash
+# Install an AUR helper (e.g., yay)
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+
+# Install AUR packages
+yay -S <package>
+```
+
+## Advanced Features
+
+### Bare Metal Implementation
+
+rastOS supports bare metal deployment with the following features:
+
+- **Limine Bootloader** for modern hardware support
+- Rust-based kernel with safe abstractions
+- Memory management and hardware abstraction
+- Device driver framework
+
+For implementation details, see [Bare Metal Documentation](../docs/BAREMETAL.md).
+
+### Cloud Storage Backups
+
+rastOS includes robust cloud storage backup capabilities:
+
+- Support for multiple cloud providers (S3, GCS, Azure Blob)
+- Encrypted, incremental backups
+- Configurable retention policies
+- Scheduled and on-demand backups
+
+For setup and usage, see [Cloud Backup Documentation](../docs/CLOUD_BACKUP.md).
+
+### LLM-Based Scheduling
+
+rastOS introduces intelligent, LLM-powered scheduling for containerized workloads. This advanced feature provides:
+
+- Dynamic, context-aware workload distribution
+- Intelligent resource allocation based on real-time metrics
+- Semantic understanding of workload requirements
+- Automatic optimization for AI/ML workloads
+
+For detailed information, see [LLM Scheduling Documentation](../docs/LLM_SCHEDULING.md).
+
+## Architecture
+
+rastOS builds upon the astOS architecture with these key improvements:
+
+1. **Core System**
+   - Custom init system (rinit) for better process management
+   - Container runtime integration (crun/youki)
+   - Enhanced BTRFS snapshot management
+
+2. **Vector Database**
+   - Centralized configuration management
+   - Semantic search capabilities
+   - Versioned configurations with rollback support
+
+3. **Networking**
+   - Native network namespace management
+   - CNI plugin support
+   - Advanced network policies
+
+For detailed architecture documentation, see [ARCHITECTURE.md](https://github.com/dandenkijin/rastos-rs/blob/main/ARCHITECTURE.md).
+
+## Development Status
+
+rastOS is currently in active development. The project is being built with the following principles:
+
+- Maintain backward compatibility with existing astOS installations
+- Gradually introduce new features while ensuring stability
+- Focus on security and performance improvements
+- Community-driven development
+
+See [AGENTS.md](https://github.com/dandenkijin/rastos-rs/blob/main/AGENTS.md) for the detailed development roadmap.
+
+## Contributing
+
+We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+
+## Community
+
+- [GitHub Discussions](https://github.com/dandenkijin/rastos-rs/discussions) - For questions and discussions
+- [Issue Tracker](https://github.com/dandenkijin/rastos-rs/issues) - To report bugs and request features
+- [Matrix](https://matrix.to/#/#rastos:matrix.org) - Real-time chat (coming soon)
+
+## Known Bugs
+
+For known issues and their status, please check the [GitHub Issues](https://github.com/dandenkijin/rastos-rs/issues) page.
 
 * Security
   * Even if running an application with eleveted permissions, it cannot replace system libraries with malicious versions

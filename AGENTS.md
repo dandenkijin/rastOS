@@ -5,7 +5,42 @@ rastOS is a modern, safe implementation of a Linux distribution with snapshot ca
 
 ## Core Components
 
-### 1. CLI Interface (`src/bin/`)
+### 1. Backup System (`src/backup/`)
+- **Core Functionality**
+  - [x] BTRFS snapshot management
+  - [x] Local storage backend
+  - [x] Cloud storage integration (S3-compatible)
+  - [x] Incremental backup support
+  - [x] Snapshot restoration
+  - [x] Backup verification
+  - [x] CLI interface
+
+- **Features**
+  - [x] Atomic backup operations
+  - [x] Metadata management
+  - [x] Progress tracking
+  - [x] Error handling and recovery
+  - [x] Test coverage
+
+- **Storage Backends**
+  - [x] Local filesystem
+  - [x] S3-compatible (AWS S3, MinIO, etc.)
+  - [ ] Google Cloud Storage
+  - [ ] Azure Blob Storage
+
+- **Configuration**
+  - [x] Backup policies
+  - [x] Storage configuration
+  - [ ] Retention policies
+  - [ ] Scheduling
+
+- **Security**
+  - [x] Basic encryption
+  - [ ] Client-side encryption (AES-256-GCM)
+  - [ ] Key management
+  - [ ] Access controls
+
+### 2. CLI Interface (`src/bin/`)
 - [x] Command-line interface for kernel building
 - [x] Support for multiple build profiles
 - [x] Parallel build support
