@@ -13,37 +13,98 @@
 
 ```
 +------------------------------------------------+
-|                  rastOS Host                   |
+|                  rastOS                        |
 |  +----------------------------------------+   |
-|  |              Container Runtime         |   |
+|  |  Container Runtime (Native)            |   |
 |  |  +---------------+  +---------------+  |   |
 |  |  |  Container 1  |  |  Container 2  |  |   |
 |  |  +---------------+  +---------------+  |   |
-|  +----------------------------------------+   |
-|  |           Container Manager            |   |
-|  +----------------------------------------+   |
-|  |          OpenStack Integration         |   |
-|  +----------------------------------------+   |
+|  |                                        |   |
+|  |  +--------------------------------+   |   |
+|  |  |  OpenStack Integration         |   |   |
+|  |  +--------------------------------+   |   |
 +------------------------------------------------+
 ```
 
 ## Key Components
 
-### 1. Container Runtime
-- **Container Engine**: crun (primary), youki (Rust-based alternative)
-- **OCI Compatibility**: Full OCI runtime specification support
-- **Isolation**: Linux namespaces and cgroups v2
-- **Networking**: CNI-based networking with multi-tenant support
-- **Storage**: OverlayFS with BTRFS snapshot support
-- **Security**: Seccomp, AppArmor, and user namespaces by default
+### 1. rastOS Core with Native Container Runtime
+- **Integrated Runtime**:
+  - Built directly into rastOS kernel and userspace
+  - No separate container runtime daemon
+  - Direct system calls for container operations
+- **Resource Management**:
+  - Unified process and container scheduling
+  - Native cgroups v2 integration
+  - Direct memory and CPU allocation
+- **Networking**:
+  - Kernel-level network namespace management
+  - Integrated CNI plugins
+  - Direct network policy enforcement
+- **Storage**:
+  - Built-in container storage drivers
+  - Native snapshot and layer management
+  - Direct filesystem integration
+- **Security**:
+  - Compile-time security hardening
+  - Minimal attack surface
+  - Direct integration with Linux security modules
 
-### 2. Container Manager
-- **Orchestration**: Basic container lifecycle management
-- **Scheduling**: Simple scheduling of containers across nodes
+### 2. Configuration & State Management
+- **Vector Database Core**: Central repository for configuration and management data
+  - **Implementation Options**:
+    - **nano-vectordb-rs**: Lightweight, easy-to-hack vector database for ML pipelines and semantic search
+    - **tinyvector**: Pure Rust implementation with fast in-memory indices
+    - **SahomeDB**: SQLite-inspired embedded vector database with HNSW indexing
+
+- **Key Advantages**:
+  - **Semantic Search**: Find similar configurations and detect anomalies
+  - **Scalability**: Efficiently handle growing numbers of devices and configurations
+  - **Unified Data Model**: Store diverse configuration types with rich metadata
+  - **Flexible Schema**: Adapt to new configuration types without rigid structures
+
+- **Implementation Considerations**:
+  - **Embedding Strategy**: Consistent representation of configuration items
+  - **Update Management**: Handle rapid configuration changes efficiently
+  - **Data Consistency**: Ensure reliable state across distributed systems
+  - **Backup & Recovery**: Robust mechanisms for configuration persistence
+  - **Security**: Access control and encryption for sensitive configuration data
+
+- **Use Cases**:
+  - Network configuration versioning and rollback
+  - System state tracking and health monitoring
+  - Policy and rule management with semantic relationships
+  - Anomaly detection in operational metrics
+  - Unified logging and telemetry analysis
+
+### 3. Host OS Integration
+- **Built-in Container Management**:
+  - Direct container lifecycle management
+  - Native process scheduling and resource allocation
+  - Integrated security policies and isolation
+  - Systemd integration for service management
+- **Configuration Management**:
+  - Direct access to system configuration
+  - Unified logging and monitoring
+  - Seamless updates and rollbacks
+  - Integrated secret management
 - **Health Monitoring**: Container health checks and auto-recovery
 - **Service Discovery**: Internal DNS and service registration
 
-### 3. OpenStack Integration
+### 4. Container Networking (CNI)
+- **CNI Plugins**: Support for standard CNI plugins:
+  - Bridge: Basic container networking
+  - Host-local: IP address management
+  - Loopback: Local loopback interface
+  - Portmap: Container port mapping
+  - Bandwidth: Traffic shaping
+- **Network Policies**: Implementation of network policies for:
+  - Pod-to-pod communication
+  - Network segmentation
+  - Ingress/egress filtering
+  - DNS-based service discovery
+
+### 5. OpenStack Integration
 - **Nova Compute**: Integration with OpenStack compute
 - **Neutron Networking**: Network management
 - **Cinder Storage**: Persistent storage volumes
@@ -66,10 +127,16 @@
 
 ## Data Flow
 
-1. **Deployment**:
+1. **Configuration Management**:
+   - System and application configurations stored in vector database
+   - Fast semantic search and retrieval of configuration parameters
+   - Versioned configuration changes with rollback support
+
+2. **Deployment**:
    - User defines container specs in YAML
-   - rastOS validates and deploys to OpenStack
-   - Containers are scheduled and launched
+   - Configurations are validated against vector database
+   - rastOS deploys to OpenStack
+   - Containers are scheduled and launched with vector-backed configs
 
 2. **Networking**:
    - Each container gets a unique IP
@@ -83,10 +150,101 @@
 
 ## Security Model
 
-- **Isolation**: Strong container isolation
-- **RBAC**: Role-based access control
-- **Network Policies**: Fine-grained network controls
-- **Audit Logging**: All operations logged
+- **Isolation**: Strong container isolation using:
+  - Linux namespaces
+  - cgroups v2 for resource constraints
+  - Seccomp profiles
+  - SELinux/AppArmor policies
+- **RBAC**: Role-based access control with:
+  - Fine-grained permissions
+  - Service accounts for processes
+  - Token-based authentication
+- **Network Policies**: Fine-grained network controls including:
+  - Network segmentation
+  - Egress/ingress filtering
+  - Network encryption (IPSec, WireGuard)
+  - Service mesh integration
+- **Audit Logging**: Comprehensive logging of:
+  - Container lifecycle events
+  - Network operations
+  - Security-relevant operations
+  - System calls and resource usage
+
+## GUI Architecture
+
+### Overview
+rastOS features a lightweight, secure GUI architecture built on:
+- **Smithay**: Custom Wayland compositor for minimal overhead
+- **Tauri**: Secure web-based frontend framework
+- **WebView**: System webview for rendering modern UIs
+
+### Components
+
+#### 1. Display Server (Smithay)
+- Custom Wayland compositor
+- Minimal resource footprint
+- Secure process isolation
+- Support for hardware acceleration
+
+#### 2. Application Framework (Tauri)
+- Web-based frontend with system webview
+- Secure IPC between frontend and backend
+- Plugin system for extensibility
+- Support for multiple windows and dialogs
+
+#### 3. Security Model
+- Process isolation between applications
+- Fine-grained permissions system
+- Secure IPC channels
+- Sandboxed applications
+
+### Terminal Integration
+
+#### Service Management (rinit)
+- **TTY Management**
+  - Virtual terminal creation and allocation
+  - TTY device management
+  - Session tracking
+  - Resource allocation and cleanup
+
+#### State Management
+- **PTY/TTY State Persistence**
+  - OS-managed state (line discipline, termios, window size)
+  - Maintained while PTY remains open
+  - Independent of attached UI layer (TUI/GUI)
+  - Managed through service layer
+- **Terminal Handling Layer**
+  - Unix-focused terminal abstraction
+  - Lightweight input/output processing
+  - Terminal capabilities detection
+  - Event handling
+  - Minimal styling support
+
+- **PTY/TTY Layer**
+  - Rust-based PTY backend implementation
+  - Cross-platform process spawning and management
+  - Asynchronous I/O handling
+  - Signal forwarding and process control
+
+- **Frontend Terminal**
+  - xterm.js integration
+  - Terminal emulation
+  - Input/output handling
+  - Terminal theming
+
+### Integration Points
+1. **System Services**
+   - Window management
+   - Input handling
+   - Display configuration
+   - Session management
+   - Terminal sessions
+
+2. **Application Services**
+   - File system access
+   - Network access
+   - Device integration
+   - Notifications
 
 ## Testing with OpenStack
 
