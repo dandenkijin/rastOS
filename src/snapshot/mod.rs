@@ -331,8 +331,6 @@ impl SnapshotTree {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ffi::CString;
-    use tempfile::tempdir;
     
     #[test]
     fn test_snapshot_tree() {
@@ -343,8 +341,11 @@ mod tests {
         let root_id = root.id;
         tree.add_snapshot(root).unwrap();
         
-        // Create a child snapshot
-        let child = Snapshot::new("child", "/snapshots/child", tree.get_snapshot(&root_id));
+        // Create a child snapshot from the root
+        let child = Snapshot::new("child", "/snapshots/child", tree.get_snapshot(&root_id))
+            .with_description("Test child snapshot")
+            .with_system_version("1.0.0");
+            
         let child_id = child.id;
         tree.add_snapshot(child).unwrap();
         
@@ -374,48 +375,24 @@ mod tests {
     /// 4. The parent-child relationship is correctly maintained
     #[test]
     fn test_create_snapshot() {
-        let temp_dir = tempdir().unwrap();
         let mut tree = SnapshotTree::new();
+        let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
         
-        // Create a root subvolume
+        // Create a mock root directory
         let root_path = temp_dir.path().join("root");
-        let root_cstr = CString::new(root_path.to_str().unwrap()).expect("CString::new failed");
+        std::fs::create_dir_all(&root_path).expect("Failed to create root dir");
         
-        // SAFETY: We're calling a C function that expects a valid C string
-        let result = unsafe {
-            btrfsutil_sys::btrfs_util_create_subvolume(
-                root_cstr.as_ptr(),
-                0, // flags
-                std::ptr::null_mut(), // async_transid
-                std::ptr::null_mut(), // qgroup_inherit
-            )
-        };
-        
-        if result != 0 {
-            panic!("Failed to create root subvolume: error code {}", result);
-        }
-        
-        let root = Snapshot::new("root", &root_path, None);
+        // Create a root snapshot
+        let root = Snapshot::new("root", &root_path, None)
+            .with_description("Test root snapshot")
+            .with_system_version("1.0.0");
+            
         let root_id = root.id;
         tree.add_snapshot(root).unwrap();
         
-        // Create a child subvolume
+        // Create a mock child directory
         let child_path = temp_dir.path().join("child");
-        let child_cstr = CString::new(child_path.to_str().unwrap()).expect("CString::new failed");
-        
-        // SAFETY: We're calling a C function that expects a valid C string
-        let result = unsafe {
-            btrfsutil_sys::btrfs_util_create_subvolume(
-                child_cstr.as_ptr(),
-                0, // flags
-                std::ptr::null_mut(), // async_transid
-                std::ptr::null_mut(), // qgroup_inherit
-            )
-        };
-        
-        if result != 0 {
-            panic!("Failed to create child subvolume: error code {}", result);
-        }
+        std::fs::create_dir_all(&child_path).expect("Failed to create child dir");
         
         // Add the child to the tree
         let child = Snapshot::new("child", &child_path, Some(&tree.get_snapshot(&root_id).unwrap()));

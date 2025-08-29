@@ -8,26 +8,34 @@ use oci_spec::runtime::{Spec, SpecBuilder, LinuxBuilder, ProcessBuilder, RootBui
 #[derive(Debug)]
 pub struct Container {
     /// Container ID
+    #[allow(dead_code)]
     id: String,
     /// Path to the container bundle
+    #[allow(dead_code)]
     bundle: PathBuf,
     /// OCI runtime specification
     spec: Spec,
-    /// Container status
-    status: ContainerStatus,
+    /// Container state
+    #[allow(dead_code)]
+    state: ContainerState,
 }
 
-/// Represents the status of a container
+/// Represents the state of a container
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ContainerStatus {
+pub enum ContainerState {
+    /// Container has been created but not started
     Created,
+    /// Container is currently running
     Running,
+    /// Container has been stopped
     Stopped,
+    /// Container has been paused
     Paused,
+    /// Container is in an error state
     Error,
 }
 
-impl Default for ContainerStatus {
+impl Default for ContainerState {
     fn default() -> Self {
         Self::Created
     }
@@ -43,7 +51,7 @@ impl Container {
             id: id.to_string(),
             bundle: bundle.to_path_buf(),
             spec,
-            status: ContainerStatus::Created,
+            state: ContainerState::default(),
         })
     }
     
@@ -55,20 +63,20 @@ impl Container {
         // 3. Set up rootfs
         // 4. Start the container process
         
-        self.status = ContainerStatus::Running;
+        self.state = ContainerState::Running;
         Ok(())
     }
     
     /// Stop the container
     pub fn stop(&mut self) -> Result<()> {
         // TODO: Implement container stop logic
-        self.status = ContainerStatus::Stopped;
+        self.state = ContainerState::Stopped;
         Ok(())
     }
     
-    /// Get the container's current status
-    pub fn status(&self) -> ContainerStatus {
-        self.status
+    /// Get the current container status
+    pub fn status(&self) -> ContainerState {
+        self.state
     }
     
     /// Get the container's OCI runtime specification
@@ -80,6 +88,7 @@ impl Container {
 /// Builder for creating container specifications
 #[derive(Default)]
 pub struct ContainerBuilder {
+    #[allow(dead_code)]
     id: String,
     root: Option<PathBuf>,
     process: Option<ProcessBuilder>,
@@ -172,11 +181,11 @@ mod tests {
         
         // Test status management
         let mut container = container;
-        container.start()?;
-        assert_eq!(container.status(), ContainerStatus::Running);
+        container.start().unwrap();
+        assert_eq!(container.status(), ContainerState::Running);
         
-        container.stop()?;
-        assert_eq!(container.status(), ContainerStatus::Stopped);
+        container.stop().unwrap();
+        assert_eq!(container.status(), ContainerState::Stopped);
         
         Ok(())
     }

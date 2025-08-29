@@ -6,6 +6,8 @@
 2. **Immutable Infrastructure**: System state managed through declarative configurations
 3. **Minimal Host OS**: Bare minimum components in the host system
 4. **Security by Default**: Strong isolation between containers and host
+5. **Optimized Kernel**: Minimal Linux kernel with container-specific optimizations
+6. **Lightweight Runtimes**: Using crun/youki for efficient container execution
 
 ## System Architecture
 
@@ -28,10 +30,12 @@
 ## Key Components
 
 ### 1. Container Runtime
-- **Container Engine**: Lightweight container runtime (runc/youki)
-- **Isolation**: Linux namespaces and cgroups
+- **Container Engine**: crun (primary), youki (Rust-based alternative)
+- **OCI Compatibility**: Full OCI runtime specification support
+- **Isolation**: Linux namespaces and cgroups v2
 - **Networking**: CNI-based networking with multi-tenant support
-- **Storage**: OverlayFS with snapshot support
+- **Storage**: OverlayFS with BTRFS snapshot support
+- **Security**: Seccomp, AppArmor, and user namespaces by default
 
 ### 2. Container Manager
 - **Orchestration**: Basic container lifecycle management
@@ -44,6 +48,21 @@
 - **Neutron Networking**: Network management
 - **Cinder Storage**: Persistent storage volumes
 - **Heat**: Orchestration templates for deployment
+
+## Kernel Configuration
+
+### Minimal Kernel Features
+- **Namespaces**: PID, network, mount, IPC, UTS, user, cgroup
+- **Cgroups**: v2 with all controllers
+- **Filesystems**: OverlayFS, BTRFS, tmpfs, proc, sysfs
+- **Networking**: Basic TCP/IP, bridge, veth, iptables, nftables
+- **Security**: Seccomp, AppArmor, capabilities
+- **Containers**: All container-related features enabled
+
+### Kernel Optimizations
+- Disabled: Unused drivers, legacy filesystems, debugging symbols
+- Optimized for: Fast boot, low memory footprint, container workloads
+- Memory: KSM (Kernel Samepage Merging) enabled
 
 ## Data Flow
 

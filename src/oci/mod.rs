@@ -7,7 +7,7 @@ mod container;
 mod error;
 
 // Re-export public interfaces
-pub use container::{Container, ContainerBuilder, ContainerStatus};
+pub use container::{Container, ContainerBuilder, ContainerState};
 pub use error::ContainerError;
 
 // Re-export oci_spec types for convenience

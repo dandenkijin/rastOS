@@ -13,6 +13,7 @@ pub mod oci;
 
 // Other core modules
 pub mod installer;
+pub mod kernel;
 pub mod package;
 pub mod snapshot;
 pub mod system;
